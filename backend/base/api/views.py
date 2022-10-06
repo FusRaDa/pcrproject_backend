@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework import generics
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -6,7 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import BatchSerializer, NoteSerializer
+from base.models import Batch, Note, Assay
+from .serializers import AssaySerializer, BatchSerializer, NoteSerializer
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
   @classmethod
@@ -28,18 +31,30 @@ def getRoutes(request):
   ]
   return Response(routes)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def getNotes(request):
-  user = request.user
-  notes = user.note_set.all()
-  serializer = NoteSerializer(notes, many=True)
-  return Response(serializer.data)
+class NoteListCreateAPIView(generics.ListCreateAPIView):
+  queryset = Note.objects.all()
+  serializer_class = NoteSerializer
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def getBatches(request):
-  user = request.user
-  batches = user.batch_set.all()
-  serializer = BatchSerializer(batches, many=True)
-  return Response(serializer.data)
+note_list_create_view = NoteListCreateAPIView.as_view()
+
+# @permission_classes([IsAuthenticated])
+class BatchListAPIView(generics.ListCreateAPIView):
+  queryset = Batch.objects.all()
+  serializer_class = BatchSerializer
+
+batch_list_view = BatchListAPIView.as_view()
+
+class AssayListAPIView(generics.ListCreateAPIView):
+  queryset = Assay.objects.all()
+  serializer_class = AssaySerializer
+
+assay_list_view = AssayListAPIView.as_view()
+
+
+ 
+
+
+
+
+
+
