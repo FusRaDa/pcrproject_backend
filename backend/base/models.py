@@ -1,24 +1,11 @@
 from datetime import datetime
-from enum import unique
+from email.policy import default
+from random import choices
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
-class Note(models.Model):
-  user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-  body = models.TextField()
-
-class Assay(models.Model):
-  name = models.CharField(max_length=25, null=True, unique=True)
-  code = models.CharField(max_length=25, null=True, unique=True)
-  group = models.ManyToManyField('self', blank=True, default='null')
-  #if assay contains a group do not include in group list
-  def __str__(self):
-    return f'{self.code}-{self.name}'
-
-
 def validate_nonzero(value):
     if value == 0:
         raise ValidationError(
@@ -26,11 +13,67 @@ def validate_nonzero(value):
             params={'value': value},
         )
 
+def validate_quantity(value):
+    if value <= 0:
+        raise ValidationError(
+            _('Quantity %(value)s is not allowed'),
+            params={'value': value},
+        )
+
+LITERS = 'Liters'
+MILLILITERS = 'Milliliters'
+MICROLITERS = 'Microliters'
+GRAMS = 'Grams'
+MILLIGRAMS = 'Milligrams'
+
+UNITS = [
+  (LITERS, 'L'),
+  (MILLILITERS, 'mL'),
+  (MICROLITERS, '\u00B5L'),
+  (GRAMS, 'g'),
+  (MILLIGRAMS, 'mg')
+]
+
+class Reagent(models.Model):
+  name = models.CharField(max_length=25, null=True, unique=True)
+  catalogNumber = models.CharField(max_length=25, null=True, unique=True)
+  quantity = models.DecimalField(max_digits=7, decimal_places=2, validators=[validate_quantity])
+  units = models.CharField(max_length=15, choices=UNITS, default=LITERS)
+  #additional fields: urls to reagent/supply to help track inventory
+
+  def __str__(self):
+    return self.name
+
+class Supply(models.Model):
+  name = models.CharField(max_length=25, null=True, unique=True)
+  catalogNumber = models.CharField(max_length=25, null=True, unique=True)
+  quantity = models.DecimalField(max_digits=7, decimal_places=2, validators=[validate_quantity])
+  units = models.CharField(max_length=15, choices=UNITS, default=LITERS)
+  #additional fields: urls to reagent/supply to help track inventory
+
+  def __str__(self):
+    return self.name
+
+def get_default_reagents():
+  return {'reagents': []}
+
+class Assay(models.Model):
+  name = models.CharField(max_length=25, null=True, unique=True)
+  code = models.CharField(max_length=25, null=True, unique=True)
+  group = models.ManyToManyField('self', blank=True, default='null')
+  #if assay contains a group do not include in group list - fix in frontend
+
+  reagent = models.ManyToManyField(Reagent)
+  supply = models.ManyToManyField(Supply)
+
+  def __str__(self):
+    return f'{self.code}-{self.name}'
+
+def get_default_miscFields():
+  return {'miscFields': []}
+
 class Batch(models.Model):
   assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
-
-  # assayCode = GenericForeignKey(singleAssay, groupAssay)
-  #assay name associated with assay code
 
   numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
   #number of tests in assay code
@@ -41,7 +84,7 @@ class Batch(models.Model):
   batchDate = models.DateTimeField(default=datetime.now)
   # # dueDate = batchDate + 48hours
 
-  miscFields = models.JSONField(blank=True, null=True, default=dict)
+  miscFields = models.JSONField(blank=True, null=True, default=get_default_miscFields)
   # geneticType
   # firstAccessionNumber
   # lastAccessionNumber

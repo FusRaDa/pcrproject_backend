@@ -1,13 +1,17 @@
 from wsgiref.validate import validator
 from rest_framework.serializers import ModelSerializer
-from base.models import Note, Batch, Assay
+from base.models import Batch, Assay, Reagent, Supply
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
-class NoteSerializer(ModelSerializer):
+class ReagentSerializer(ModelSerializer):
   class Meta:
-    model = Note
-    fields = '__all__'
+    model = Reagent
+    fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
+
+class SupplySerializer(ModelSerializer):
+  class Meta:
+    model = Supply
+    fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
 
 class AssaySerializer(ModelSerializer):
   group = serializers.SlugRelatedField(
@@ -18,7 +22,7 @@ class AssaySerializer(ModelSerializer):
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'group']
+    fields = ['name', 'code', 'group', 'reagent', 'pk']
 
 class BatchSerializer(ModelSerializer):
   assay = serializers.SlugRelatedField(
