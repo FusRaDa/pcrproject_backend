@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from base.models import Batch, Assay, Reagent
-from .serializers import AssaySerializer, BatchSerializer, ReagentSerializer
+from base.models import Batch, Assay, Reagent, Supply
+from .serializers import AssaySerializer, BatchSerializer, ReagentSerializer, SupplySerializer
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -45,19 +45,19 @@ class ReagentRetrieveUpdateDestroyAPIView(generics.RetrieveAPIView, generics.Upd
 
 reagent_retrieve_update_destroy = ReagentRetrieveUpdateDestroyAPIView.as_view()
 
+#Supply
+class SupplyListCreateAPIView(generics.ListCreateAPIView):
+  queryset = Supply.objects.all()
+  serializer_class = SupplySerializer
 
+supply_list_create_view = SupplyListCreateAPIView.as_view()
 
+class SupplyRetrieveUpdateDestroyAPIView(generics.RetrieveAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+  queryset = Supply.objects.all()
+  serializer_class = SupplySerializer
+  lookup_field = 'pk'
 
-
-
-
-
-
-
-
-
-
-
+supply_retrieve_update_destroy = SupplyRetrieveUpdateDestroyAPIView.as_view()
 
 
 #Assay
@@ -99,7 +99,7 @@ assay_destroy_view = AssayDestroyAPIView.as_view()
 
 
 #Batch
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 class BatchListAPIView(generics.ListAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
@@ -107,6 +107,7 @@ class BatchListAPIView(generics.ListAPIView):
 batch_list_view = BatchListAPIView.as_view()
 
 
+@permission_classes([IsAuthenticated])
 class BatchRetrieveAPIView(generics.RetrieveAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
@@ -115,13 +116,7 @@ class BatchRetrieveAPIView(generics.RetrieveAPIView):
 batch_retrieve_view = BatchRetrieveAPIView.as_view()
 
 
-class BatchCreateAPIView(generics.CreateAPIView):
-  queryset = Batch.objects.all()
-  serializer_class = BatchSerializer
-
-batch_create_view = BatchCreateAPIView.as_view()
-
-
+@permission_classes([IsAuthenticated])
 class BatchUpdateAPIView(generics.UpdateAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
@@ -130,12 +125,23 @@ class BatchUpdateAPIView(generics.UpdateAPIView):
 batch_update_view = BatchUpdateAPIView.as_view()
 
 
+@permission_classes([IsAuthenticated])
 class BatchDestroyAPIView(generics.DestroyAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
   lookup_field = 'pk'
 
-batch_destroy_view = BatchDestroyAPIView.as_view()
+bath_destroy_view = BatchDestroyAPIView.as_view()
+
+
+@permission_classes([IsAuthenticated])
+class BatchCreateAPIView(generics.CreateAPIView):
+  queryset = Batch.objects.all()
+  serializer_class = BatchSerializer
+
+batch_create_view = BatchCreateAPIView.as_view()
+
+
 
 
 

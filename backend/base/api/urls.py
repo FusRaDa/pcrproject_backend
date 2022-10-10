@@ -13,6 +13,9 @@ urlpatterns = [
 
   path('reagents/', views.reagent_list_create_view, name='reagent_create_list'),
   path('reagents/<int:pk>/modify', views.reagent_retrieve_update_destroy, name='reagent_retrieve_update_destroy'),
+
+  path('supplies/', views.supply_list_create_view, name='supply_create_list'),
+  path('supplies/<int:pk>/modify', views.supply_retrieve_update_destroy, name='supply_retrieve_update_destroy'),
  
   path('assays/', views.assay_list_view, name='assay_list'),
   path('assays/create/', views.assay_create_view, name='assay_create'),
@@ -24,6 +27,6 @@ urlpatterns = [
   path('batches/create/', views.batch_create_view, name='batch_create'),
   path('batches/<int:pk>/retrieve/', views.batch_retrieve_view, name='batch_retrieve'),
   path('batches/<int:pk>/update/', views.batch_update_view, name='batch_update'),
-  path('batches/<int:pk>/destroy/', views.batch_destroy_view, name='batch_destroy'),
-
+  path('batches/<int:pk>/destroy/', views.bath_destroy_view, name='batch_destroy')
+  
 ]

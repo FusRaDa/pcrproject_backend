@@ -32,6 +32,6 @@ class BatchSerializer(ModelSerializer):
 
   class Meta:
     model = Batch
-    fields = ['assay', 'numberOfSamples', 'isBatchProccessed', 'batchDate', 'miscFields', 'pk']
+    fields = ['assay', 'numberOfSamples', 'miscFields', 'batchDate', 'pk']
 
 

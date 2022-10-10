@@ -54,6 +54,7 @@ class Supply(models.Model):
   def __str__(self):
     return self.name
 
+# not being used
 def get_default_reagents():
   return {'reagents': []}
 
@@ -69,6 +70,7 @@ class Assay(models.Model):
   def __str__(self):
     return f'{self.code}-{self.name}'
 
+# not being used
 def get_default_miscFields():
   return {'miscFields': []}
 
@@ -84,7 +86,7 @@ class Batch(models.Model):
   batchDate = models.DateTimeField(default=datetime.now)
   # # dueDate = batchDate + 48hours
 
-  miscFields = models.JSONField(blank=True, null=True, default=get_default_miscFields)
+  miscFields = models.JSONField(blank=True, null=True, default=dict)
   # geneticType
   # firstAccessionNumber
   # lastAccessionNumber
