@@ -32,36 +32,84 @@ def getRoutes(request):
   return Response(routes)
 
 #Reagent
-class ReagentListCreateAPIView(generics.ListCreateAPIView):
+class ReagentListAPIView(generics.ListAPIView):
   queryset = Reagent.objects.all()
   serializer_class = ReagentSerializer
 
-reagent_list_create_view = ReagentListCreateAPIView.as_view()
+reagent_list_view = ReagentListAPIView.as_view()
 
-class ReagentRetrieveUpdateDestroyAPIView(generics.RetrieveAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+
+class ReagentCreateAPIView(generics.CreateAPIView):
+  queryset = Reagent.objects.all()
+  serializer_class = ReagentSerializer
+
+reagent_create_view = ReagentCreateAPIView.as_view()
+
+
+class ReagentRetrieveAPIView(generics.RetrieveAPIView):
   queryset = Reagent.objects.all()
   serializer_class = ReagentSerializer
   lookup_field = 'pk'
 
-reagent_retrieve_update_destroy = ReagentRetrieveUpdateDestroyAPIView.as_view()
+reagent_retrieve_view = ReagentRetrieveAPIView.as_view()
+
+
+class ReagentUpdateAPIView(generics.UpdateAPIView):
+  queryset = Reagent.objects.all()
+  serializer_class = ReagentSerializer
+  lookup_field = 'pk'
+
+reagent_update_view = ReagentUpdateAPIView.as_view()
+
+class ReagentDestroyAPIView(generics.DestroyAPIView):
+  queryset = Reagent.objects.all()
+  serializer_class = ReagentSerializer
+  lookup_field = 'pk'
+
+reagent_destroy_view = ReagentDestroyAPIView.as_view()
+
 
 #Supply
-class SupplyListCreateAPIView(generics.ListCreateAPIView):
+class SupplyListAPIView(generics.ListAPIView):
   queryset = Supply.objects.all()
   serializer_class = SupplySerializer
 
-supply_list_create_view = SupplyListCreateAPIView.as_view()
+supply_list_view = SupplyListAPIView.as_view()
 
-class SupplyRetrieveUpdateDestroyAPIView(generics.RetrieveAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+
+class SupplyCreateAPIView(generics.CreateAPIView):
+  queryset = Supply.objects.all()
+  serializer_class = SupplySerializer
+
+supply_create_view = SupplyCreateAPIView.as_view()
+
+
+class SupplyRetrieveAPIView(generics.RetrieveAPIView):
   queryset = Supply.objects.all()
   serializer_class = SupplySerializer
   lookup_field = 'pk'
 
-supply_retrieve_update_destroy = SupplyRetrieveUpdateDestroyAPIView.as_view()
+supply_retrieve_view = SupplyRetrieveAPIView.as_view()
+
+
+class SupplyUpdateAPIView(generics.UpdateAPIView):
+  queryset = Supply.objects.all()
+  serializer_class = SupplySerializer
+  lookup_field = 'pk'
+
+supply_update_view = SupplyUpdateAPIView.as_view()
+
+
+class SupplyDestroyAPIView(generics.DestroyAPIView):
+  queryset = Supply.objects.all()
+  serializer_class = SupplySerializer
+  lookup_field = 'pk'
+
+supply_destroy_view = SupplyDestroyAPIView.as_view()
 
 
 #Assay
-class AssayListAPIView(generics.ListCreateAPIView):
+class AssayListAPIView(generics.ListAPIView):
   queryset = Assay.objects.all()
   serializer_class = AssaySerializer
 

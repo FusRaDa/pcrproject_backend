@@ -11,11 +11,17 @@ urlpatterns = [
   path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
   path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-  path('reagents/', views.reagent_list_create_view, name='reagent_create_list'),
-  path('reagents/<int:pk>/modify', views.reagent_retrieve_update_destroy, name='reagent_retrieve_update_destroy'),
+  path('reagents/', views.reagent_list_view, name='reagent_list'),
+  path('reagents/create/', views.reagent_create_view, name='reagent_create'),
+  path('reagent/<int:pk>/retrieve', views.reagent_retrieve_view, name="reagent_retrieve"),
+  path('reagent/<int:pk>/update', views.reagent_update_view, name="reagent_update"),
+  path('reagent/<int:pk>/destroy', views.reagent_destroy_view, name="reagent_destroy"),
 
-  path('supplies/', views.supply_list_create_view, name='supply_create_list'),
-  path('supplies/<int:pk>/modify', views.supply_retrieve_update_destroy, name='supply_retrieve_update_destroy'),
+  path('supplies/', views.supply_list_view, name='supply_list'),
+  path('supllies/create/', views.supply_create_view, name='supply_create'),
+  path('supplies/<int:pk>/retrieve', views.supply_retrieve_view, name='supply_retrieve'),
+  path('supplies/<int:pk>/update', views.supply_update_view, name='supply_update'),
+  path('supplies/<int:pk>/destroy', views.supply_destroy_view, name='supply_destroy'),
  
   path('assays/', views.assay_list_view, name='assay_list'),
   path('assays/create/', views.assay_create_view, name='assay_create'),
