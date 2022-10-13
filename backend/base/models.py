@@ -61,11 +61,12 @@ def get_default_reagents():
 class Assay(models.Model):
   name = models.CharField(max_length=25, null=True, unique=True)
   code = models.CharField(max_length=25, null=True, unique=True)
-  group = models.ManyToManyField('self', blank=True, default='null')
+  group = models.ManyToManyField('self', blank=True, default='null', symmetrical=False)
   #if assay contains a group do not include in group list - fix in frontend
 
-  reagent = models.ManyToManyField(Reagent)
-  supply = models.ManyToManyField(Supply)
+  #make reagent and supply neccessary eventually...
+  reagent = models.ManyToManyField(Reagent, blank=True)
+  supply = models.ManyToManyField(Supply, blank=True)
 
   def __str__(self):
     return f'{self.code}-{self.name}'
@@ -74,6 +75,7 @@ class Assay(models.Model):
 def get_default_miscFields():
   return {'miscFields': []}
 
+#add Batch name later...
 class Batch(models.Model):
   assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
 
