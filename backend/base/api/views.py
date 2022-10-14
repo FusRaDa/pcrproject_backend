@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from base.models import Batch, Assay, Reagent, Supply
-from .serializers import AssaySerializer, BatchSerializer, ReagentSerializer, SupplySerializer
+from base.models import Batch, Assay, Reagent, Supply, Label
+from .serializers import AssaySerializer, BatchSerializer, LabelSerializer, ReagentSerializer, SupplySerializer
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -179,7 +179,7 @@ class BatchDestroyAPIView(generics.DestroyAPIView):
   serializer_class = BatchSerializer
   lookup_field = 'pk'
 
-bath_destroy_view = BatchDestroyAPIView.as_view()
+batch_destroy_view = BatchDestroyAPIView.as_view()
 
 
 @permission_classes([IsAuthenticated])
@@ -188,6 +188,52 @@ class BatchCreateAPIView(generics.CreateAPIView):
   serializer_class = BatchSerializer
 
 batch_create_view = BatchCreateAPIView.as_view()
+
+
+
+
+#labels - for column names in master sheet
+@permission_classes([IsAuthenticated])
+class LabelListAPIView(generics.ListAPIView):
+  queryset = Label.objects.all()
+  serializer_class = LabelSerializer
+
+label_list_view = LabelListAPIView.as_view()
+
+
+@permission_classes([IsAuthenticated])
+class LabelRetrieveAPIView(generics.RetrieveAPIView):
+  queryset = Label.objects.all()
+  serializer_class = LabelSerializer
+  lookup_field = 'pk'
+
+label_retrieve_view = LabelRetrieveAPIView.as_view()
+
+
+@permission_classes([IsAuthenticated])
+class LabelUpdateAPIView(generics.UpdateAPIView):
+  queryset = Label.objects.all()
+  serializer_class = LabelSerializer
+  lookup_field = 'pk'
+
+label_update_view = LabelUpdateAPIView.as_view()
+
+
+@permission_classes([IsAuthenticated])
+class LabelDestroyAPIView(generics.DestroyAPIView):
+  queryset = Label.objects.all()
+  serializer_class = LabelSerializer
+  lookup_field = 'pk'
+
+label_destroy_view = LabelDestroyAPIView.as_view()
+
+
+@permission_classes([IsAuthenticated])
+class LabelCreateAPIView(generics.CreateAPIView):
+  queryset = Label.objects.all()
+  serializer_class = LabelSerializer
+
+label_create_view = LabelCreateAPIView.as_view()
 
 
 

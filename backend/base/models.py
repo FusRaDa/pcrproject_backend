@@ -1,6 +1,3 @@
-from datetime import datetime
-from email.policy import default
-from random import choices
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -77,23 +74,26 @@ def get_default_miscFields():
 
 #add Batch name later...
 class Batch(models.Model):
-  assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
+  # assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
 
-  numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
-  #number of tests in assay code
-  #calculate number of tests = tests in assay code * number of samples
+  # numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
+  # #number of tests in assay code
+  # #calculate number of tests = tests in assay code * number of samples
 
-  isBatchProccessed = models.BooleanField(default=False)
+  # isBatchProccessed = models.BooleanField(default=False)
 
-  batchDate = models.DateTimeField(default=datetime.now)
+  # batchDate = models.DateTimeField(default=datetime.now)
   # # dueDate = batchDate + 48hours
 
-  miscFields = models.JSONField(blank=True, null=True, default=dict)
+  fieldLabels = models.JSONField(blank=True, null=True, default=dict)
   # geneticType
   # firstAccessionNumber
   # lastAccessionNumber
   # client
   # group id's
+
+class Label(models.Model):
+  label = models.CharField(max_length=25, null=True, unique=True)
 
 
 

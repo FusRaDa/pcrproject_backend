@@ -33,6 +33,12 @@ urlpatterns = [
   path('batches/create/', views.batch_create_view, name='batch_create'),
   path('batches/<int:pk>/retrieve/', views.batch_retrieve_view, name='batch_retrieve'),
   path('batches/<int:pk>/update/', views.batch_update_view, name='batch_update'),
-  path('batches/<int:pk>/destroy/', views.bath_destroy_view, name='batch_destroy')
+  path('batches/<int:pk>/destroy/', views.batch_destroy_view, name='batch_destroy'),
+
+  path('labels/', views.label_list_view, name='label_list'),
+  path('labels/create/', views.label_create_view, name='label_create'),
+  path('labels/<int:pk>/retrieve/', views.label_retrieve_view, name='label_retrieve'),
+  path('labels/<int:pk>/update/', views.label_update_view, name='label_update'),
+  path('labels/<int:pk>/destroy/', views.label_destroy_view, name='label_destroy'),
   
 ]
