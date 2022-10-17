@@ -147,7 +147,6 @@ assay_destroy_view = AssayDestroyAPIView.as_view()
 
 
 #Batch
-@permission_classes([IsAuthenticated])
 class BatchListAPIView(generics.ListAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer

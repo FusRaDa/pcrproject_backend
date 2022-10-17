@@ -1,6 +1,7 @@
 from pyexpat import model
 from rest_framework.serializers import ModelSerializer
 from base.models import Batch, Assay, Reagent, Supply, Label
+from rest_framework import serializers
 
 class ReagentSerializer(ModelSerializer):
   class Meta:
@@ -30,15 +31,11 @@ class AssaySerializer(ModelSerializer):
     fields = ['name', 'code', 'pk'] # include group, reagent, and supply as required later on
 
 class BatchSerializer(ModelSerializer):
-  # assay = serializers.SlugRelatedField(
-  #   queryset=Assay.objects.all(),
-  #   slug_field='code'
-  # )
-
+  assay = AssaySerializer()
+  
   class Meta:
     model = Batch
-    # fields = ['assay', 'numberOfSamples', 'miscFields', 'batchDate', 'pk']
-    fields = ['fieldLabels', 'pk']
+    fields = ['assay', 'numberOfSamples', 'isBatchProcessed', 'batchDate', 'fieldLabels', 'pk']
 
 class LabelSerializer(ModelSerializer):
   class Meta:
