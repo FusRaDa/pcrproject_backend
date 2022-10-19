@@ -1,3 +1,4 @@
+import profile
 from rest_framework.serializers import ModelSerializer
 from base.models import Batch, Assay, Reagent, Supply, Label
 from rest_framework import serializers
@@ -62,31 +63,62 @@ class AssaySerializer(ModelSerializer):
             "Assay with this name was not found."
         )
     return value
-   
+
 class BatchSerializer(ModelSerializer):
   assay = AssaySerializer(required=True)
   
   class Meta:
     model = Batch
     fields = ['assay', 'numberOfSamples', 'isBatchProcessed', 'batchDate', 'fieldLabels', 'pk']
-
+  
+  #create
   def create(self, validated_data):
     assay_validated = validated_data.get("assay")
     if assay_validated:
-        validated_data["assay"] = Assay.objects.get(
-            code=assay_validated.get("code")
-        )
+      validated_data["assay"] = Assay.objects.get(
+          code=assay_validated.get("code"),
+          name=assay_validated.get("name")
+      )
     project = Batch.objects.create(**validated_data)
     return project
 
-  def create(self, validated_data):
+  def update(self, instance, validated_data):
     assay_validated = validated_data.get("assay")
-    if assay_validated:
-        validated_data["assay"] = Assay.objects.get(
-            name=assay_validated.get("name")
-        )
-    project = Batch.objects.create(**validated_data)
-    return project
+
+    instance.assay = Assay.objects.get(
+        name=assay_validated.get('name'),
+        code=assay_validated.get("code")
+      )
+
+    instance.numberOfSamples = validated_data.get('numberOfSamples', instance.numberOfSamples)
+    instance.isBatchProcessed = validated_data.get('isBatchProcessed', instance.isBatchProcessed)
+    instance.batchDate = validated_data.get('batchDate', instance.batchDate)
+    instance.fieldLabels = validated_data.get('fieldLabels', instance.fieldLabels)
+    instance.save()
+
+    return instance
+    
+    
+   
+
+   
+
+   
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+     
+    
 
 
 class LabelSerializer(ModelSerializer):

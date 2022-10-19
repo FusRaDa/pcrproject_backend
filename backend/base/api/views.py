@@ -163,7 +163,6 @@ class BatchRetrieveAPIView(generics.RetrieveAPIView):
 batch_retrieve_view = BatchRetrieveAPIView.as_view()
 
 
-@permission_classes([IsAuthenticated])
 class BatchUpdateAPIView(generics.UpdateAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
@@ -181,7 +180,6 @@ class BatchDestroyAPIView(generics.DestroyAPIView):
 batch_destroy_view = BatchDestroyAPIView.as_view()
 
 
-@permission_classes([IsAuthenticated])
 class BatchCreateAPIView(generics.CreateAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
