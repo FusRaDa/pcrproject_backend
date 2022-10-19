@@ -89,7 +89,6 @@ class BatchSerializer(ModelSerializer):
     return project
 
 
-  
 class LabelSerializer(ModelSerializer):
   class Meta:
     model = Label
