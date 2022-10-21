@@ -1,4 +1,4 @@
-import profile
+from dataclasses import field
 from rest_framework.serializers import ModelSerializer
 from base.models import Batch, Assay, Reagent, Supply, Label
 from rest_framework import serializers
@@ -13,12 +13,13 @@ class SupplySerializer(ModelSerializer):
     model = Supply
     fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
 
+class GroupAssay(ModelSerializer):
+  class Meta:
+    model = Assay
+    fields = '__all__'
+
 class AssaySerializer(ModelSerializer):
-  # group = serializers.SlugRelatedField(
-  #   queryset=Assay.objects.all(),
-  #   many=True,
-  #   slug_field='code'
-  # )
+  group = GroupAssay(many=True)
 
   # reagent = serializers.SlugRelatedField(
   #   queryset=Reagent.objects.all(),
@@ -28,7 +29,7 @@ class AssaySerializer(ModelSerializer):
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'pk'] # include group, reagent, and supply as required later on
+    fields = ['name', 'code', 'group', 'pk'] # include group, reagent, and supply as required later on
     extra_kwargs = {
       'name' : {'validators': []},
       'code' : {'validators': []},
@@ -63,6 +64,13 @@ class AssaySerializer(ModelSerializer):
             "Assay with this name was not found."
         )
     return value
+
+  #ensures that assay can either have zero or more than one assay in group
+  def clean(self):
+    group = self.cleaned_data.get('group')
+    if group and group.count() == 1:
+      raise serializers.ValidationError('Assay must either have no assays or more than one in its group')
+    return self.cleaned_data
 
 class BatchSerializer(ModelSerializer):
   assay = AssaySerializer(required=True)

@@ -1,6 +1,4 @@
 from datetime import datetime
-from enum import unique
-from pyexpat import model
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -66,7 +64,6 @@ class Assay(models.Model):
 
   #make reagent and supply neccessary eventually...
   reagent = models.ManyToManyField(Reagent, blank=True)
-  supply = models.ManyToManyField(Supply, blank=True)
 
   def __str__(self):
     return f'{self.code}-{self.name}'
