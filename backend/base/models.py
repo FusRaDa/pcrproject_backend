@@ -56,9 +56,22 @@ class Supply(models.Model):
 def get_default_reagents():
   return {'reagents': []}
 
+
+DNA = 'DNA'
+RNA = 'RNA'
+TOTAL_NUCLEIC = 'Total nucleic'
+
+TYPE = [
+  (DNA, 'DNA'),
+  (RNA, 'RNA'),
+  (TOTAL_NUCLEIC, 'Total nucleic'),
+]
+
 class Assay(models.Model):
   name = models.CharField(max_length=25, null=True, unique=True)
   code = models.CharField(max_length=25, null=True, unique=True)
+  type = models.CharField(max_length=15, choices=TYPE, default=DNA)
+
   group = models.ManyToManyField('self', blank=True, default='null', symmetrical=False)
   #if assay contains a group do not include in group list - fix in frontend
 
@@ -72,9 +85,12 @@ class Assay(models.Model):
 def get_default_miscFields():
   return {'miscFields': []}
 
+
 #add Batch name later...
 class Batch(models.Model):
   assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
+  # name = models.CharField(max_length=25, blank=False)
+  # code = models.CharField(max_length=25, blank=False)
 
   numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
   # #number of tests in assay code
@@ -91,6 +107,8 @@ class Batch(models.Model):
   # lastAccessionNumber
   # client
   # group id's
+
+
 
 class Label(models.Model):
   label = models.CharField(max_length=25, null=True, unique=True)

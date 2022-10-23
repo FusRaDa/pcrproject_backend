@@ -1,4 +1,3 @@
-from dataclasses import field
 from rest_framework.serializers import ModelSerializer
 from base.models import Batch, Assay, Reagent, Supply, Label
 from rest_framework import serializers
@@ -14,22 +13,20 @@ class SupplySerializer(ModelSerializer):
     fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
 
 class GroupAssay(ModelSerializer):
+  reagent = ReagentSerializer(many=True)
   class Meta:
     model = Assay
-    fields = '__all__'
+    fields = ['name', 'code', 'type', 'reagent', 'pk']
 
 class AssaySerializer(ModelSerializer):
   group = GroupAssay(many=True)
 
-  # reagent = serializers.SlugRelatedField(
-  #   queryset=Reagent.objects.all(),
-  #   many=True,
-  #   slug_field='name'
-  # )
+  #frontend - only allow a reagent to be added if there is no group of assays
+  reagent = ReagentSerializer(many=True)
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'group', 'pk'] # include group, reagent, and supply as required later on
+    fields = ['name', 'code', 'type', 'reagent', 'group', 'pk'] # include group, reagent, and supply as required later on
     extra_kwargs = {
       'name' : {'validators': []},
       'code' : {'validators': []},
@@ -95,7 +92,8 @@ class BatchSerializer(ModelSerializer):
 
     instance.assay = Assay.objects.get(
         name=assay_validated.get('name'),
-        code=assay_validated.get("code")
+        code=assay_validated.get('code'),
+        grou=assay_validated.get('group')
       )
 
     instance.numberOfSamples = validated_data.get('numberOfSamples', instance.numberOfSamples)
