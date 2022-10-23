@@ -90,7 +90,6 @@ def get_default_miscFields():
 class Batch(models.Model):
   assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
   # name = models.CharField(max_length=25, blank=False)
-  # code = models.CharField(max_length=25, blank=False)
 
   numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
   # #number of tests in assay code
