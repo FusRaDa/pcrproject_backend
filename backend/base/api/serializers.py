@@ -6,41 +6,6 @@ class ReagentSerializer(ModelSerializer):
   class Meta:
     model = Reagent
     fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
-    extra_kwargs = {
-      'name' : {'validators': []},
-      'catalogNumber' : {'validators': []},
-    }
-
-  def validate_name(self, value):
-    check_query = Reagent.objects.filter(name=value)
-    if check_query.exists() and not (
-        isinstance(self.parent, BatchSerializer)
-        and self.field_name == "assay"
-    ):
-        raise serializers.ValidationError(
-            "Reagent with this name already exists!"
-        )
-    if not check_query.exists():
-        raise serializers.ValidationError(
-            "Reagent with this name was not found!"
-        )
-    return value
-
-  def validate_catalogNumber(self, value):
-    check_query = Reagent.objects.filter(catalogNumber=value)
-    if check_query.exists() and not (
-        isinstance(self.parent, BatchSerializer)
-        and self.field_name == "assay"
-    ):
-        raise serializers.ValidationError(
-            "Reagent with this catalog number already exists!"
-        )
-    if not check_query.exists():
-        raise serializers.ValidationError(
-            "Reagent with this catalog number was not found!"
-        )
-    return value
- 
 
 
 #not in use right now
@@ -53,9 +18,37 @@ class SupplySerializer(ModelSerializer):
 
 class GroupAssay(ModelSerializer):
   reagent = ReagentSerializer(many=True)
+
   class Meta:
     model = Assay
     fields = ['name', 'code', 'type', 'reagent', 'pk']
+    extra_kwargs = {
+      'name' : {'validators': []},
+      'code' : {'validators': []},
+    }
+
+  def validate_code(self, value):
+    check_query = Assay.objects.filter(code=value)
+    if not check_query.exists():
+      raise serializers.ValidationError(
+          "Assay with this code was not found."
+      )
+    if check_query.exists() and (isinstance(self.parent, BatchSerializer)):
+      return value
+    # elif check_query.exists() and (isinstance(self.parent, AssaySerializer)):
+    #   raise serializers.ValidationError(
+    #         "Assay with this code already exists."
+    #     )
+
+  def validate_name(self, value):
+    check_query = Assay.objects.filter(name=value)
+    if not check_query.exists():
+      raise serializers.ValidationError(
+          "Assay with this name was not found."
+      )
+    if check_query.exists() and (isinstance(self.parent, BatchSerializer)):
+      return value
+
 
 class AssaySerializer(ModelSerializer):
   group = GroupAssay(many=True)
@@ -77,13 +70,13 @@ class AssaySerializer(ModelSerializer):
         isinstance(self.parent, BatchSerializer)
         and self.field_name == "assay"
     ):
-        raise serializers.ValidationError(
-            "Assay with this code already exists."
-        )
+      raise serializers.ValidationError(
+          "Assay with this code already exists."
+      )
     if not check_query.exists():
-        raise serializers.ValidationError(
-            "Assay with this code was not found."
-        )
+      raise serializers.ValidationError(
+          "Assay with this code was not found."
+      )
     return value
 
   def validate_name(self, value):
@@ -92,26 +85,14 @@ class AssaySerializer(ModelSerializer):
         isinstance(self.parent, BatchSerializer)
         and self.field_name == "assay"
     ):
-        raise serializers.ValidationError(
-            "Assay with this name already exists."
-        )
+      raise serializers.ValidationError(
+          "Assay with this name already exists."
+      )
     if not check_query.exists():
-        raise serializers.ValidationError(
-            "Assay with this name was not found."
-        )
+      raise serializers.ValidationError(
+          "Assay with this name was not found."
+      )
     return value
-
-  #exp
-  # def create(self, validated_data):
-  #   reagent_validated = validated_data.get('reagent')
-  #   if reagent_validated:
-  #     validated_data['reagent'] = Reagent.objects.get(
-  #         name=reagent_validated.get('name'),
-  #         catalogNumber=reagent_validated.get('catalogNumber'),
-  #     )
-  
-  #   project = Reagent.objects.create(**validated_data)
-  #   return project
 
 
   #ensures that assay can either have zero or more than one assay in group
@@ -121,12 +102,15 @@ class AssaySerializer(ModelSerializer):
   #     raise serializers.ValidationError('Assay must either have no assays or more than one in its group')
   #   return self.cleaned_data
 
+
+
 class BatchSerializer(ModelSerializer):
   assay = AssaySerializer(required=True)
   
   class Meta:
     model = Batch
     fields = ['assay', 'numberOfSamples', 'isBatchProcessed', 'batchDate', 'fieldLabels', 'pk']
+
   
   #create
   def create(self, validated_data):
@@ -136,14 +120,8 @@ class BatchSerializer(ModelSerializer):
           code=assay_validated.get('code'),
           name=assay_validated.get('name'),
       )
-  
     project = Batch.objects.create(**validated_data)
     return project
-
-
-
-
-
 
 
   #reagent issue - custome update

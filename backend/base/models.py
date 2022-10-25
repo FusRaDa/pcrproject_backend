@@ -1,4 +1,6 @@
 from datetime import datetime
+from email.policy import default
+from django.core.validators import MaxValueValidator, MinValueValidator 
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -33,8 +35,8 @@ UNITS = [
 ]
 
 class Reagent(models.Model):
-  name = models.CharField(max_length=25, null=True, unique=True)
-  catalogNumber = models.CharField(max_length=25, null=True, unique=True)
+  name = models.CharField(max_length=25, null=True)
+  catalogNumber = models.CharField(max_length=25, null=True)
   quantity = models.DecimalField(max_digits=7, decimal_places=2, validators=[validate_quantity])
   units = models.CharField(max_length=15, choices=UNITS, default=LITERS)
   #additional fields: urls to reagent/supply to help track inventory
@@ -43,8 +45,8 @@ class Reagent(models.Model):
     return self.name
 
 class Supply(models.Model):
-  name = models.CharField(max_length=25, null=True, unique=True)
-  catalogNumber = models.CharField(max_length=25, null=True, unique=True)
+  name = models.CharField(max_length=25, null=True)
+  catalogNumber = models.CharField(max_length=25, null=True)
   quantity = models.DecimalField(max_digits=7, decimal_places=2, validators=[validate_quantity])
   units = models.CharField(max_length=15, choices=UNITS, default=LITERS)
   #additional fields: urls to reagent/supply to help track inventory
@@ -76,7 +78,7 @@ class Assay(models.Model):
   #if assay contains a group do not include in group list - fix in frontend
 
   #make reagent and supply neccessary eventually...
-  reagent = models.ManyToManyField(Reagent, blank=True)
+  reagent = models.ManyToManyField(Reagent, blank=True, symmetrical=False)
 
   def __str__(self):
     return f'{self.code}-{self.name}'
@@ -85,11 +87,21 @@ class Assay(models.Model):
 def get_default_miscFields():
   return {'miscFields': []}
 
+class ExtractionNumber(models.Model):
+  # groupNum should be only one instance that is only being updated: decrease or increase
+  # when hitting max, reset to zero and increase groupSet by one
+  groupNum = models.PositiveSmallIntegerField(default=0, validators=[MinValueValidator(17576)])
+  groupSet = models.PositiveIntegerField(default=1)
+
+
+class ExtractionGroup(models.Model):
+  groupID = models.CharField(max_length=4, null=True, unique=True)
+
+
 
 #add Batch name later...
 class Batch(models.Model):
   assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
-  # name = models.CharField(max_length=25, blank=False)
 
   numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
   # #number of tests in assay code
@@ -106,6 +118,10 @@ class Batch(models.Model):
   # lastAccessionNumber
   # client
   # group id's
+  # due date
+
+  # dnaExtraction = models.ForeignKey(ExtractionGroup, null=True, )
+  # rnaExtraction = models.ForeignKey(ExtractionGroup, null=True, )
 
 
 
