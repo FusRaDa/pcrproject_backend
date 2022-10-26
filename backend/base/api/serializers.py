@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework.validators import UniqueValidator
 from base.models import Batch, Assay, Reagent, Supply, Label
 from rest_framework import serializers
 
@@ -6,7 +7,7 @@ class ReagentSerializer(ModelSerializer):
   class Meta:
     model = Reagent
     fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
-
+  
 
 #not in use right now
 class SupplySerializer(ModelSerializer):
@@ -15,13 +16,13 @@ class SupplySerializer(ModelSerializer):
     fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
 
 
-
 class GroupAssay(ModelSerializer):
   reagent = ReagentSerializer(many=True)
+  supply = SupplySerializer(many=True)
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'type', 'reagent', 'pk']
+    fields = ['name', 'code', 'type', 'reagent', 'supply', 'pk']
     extra_kwargs = {
       'name' : {'validators': []},
       'code' : {'validators': []},
@@ -55,10 +56,11 @@ class AssaySerializer(ModelSerializer):
 
   #frontend - only allow a reagent to be added if there is no group of assays
   reagent = ReagentSerializer(many=True)
+  supply = SupplySerializer(many=True)
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'type', 'reagent', 'group', 'pk'] # include group, reagent, and supply as required later on
+    fields = ['name', 'code', 'type', 'reagent', 'supply', 'group', 'pk'] # include group, reagent, and supply as required later on
     extra_kwargs = {
       'name' : {'validators': []},
       'code' : {'validators': []},
@@ -109,16 +111,42 @@ class BatchSerializer(ModelSerializer):
   
   class Meta:
     model = Batch
-    fields = ['assay', 'numberOfSamples', 'isBatchProcessed', 'batchDate', 'fieldLabels', 'pk']
+    fields = ['assay', 'numberOfSamples', 'isBatchProcessed', 'batchDate', 'dna_extraction', 'rna_extraction', 'fieldLabels', 'pk']
+    extra_kwargs = {
+      'dna_extraction' : {'validators': []},
+      'rna_extraction' : {'validators': []},
+    }
 
-  
+  def validate_dna_extraction(self, value):
+    check_query = Batch.objects.all().filter(rna_extraction=value)
+    if check_query.exists():
+      raise serializers.ValidationError(
+          "Batch with this extraction group already exists."
+      )
+    return value
+
+  def validate_rna_extraction(self, value):
+    check_query = Batch.objects.all().filter(dna_extraction=value)
+    if check_query.exists():
+      raise serializers.ValidationError(
+          "Batch with this extraction group already exists."
+      )
+    return value
+
+
   #create
   def create(self, validated_data):
+    rna_validated = validated_data.get('rna_extraction')
+    dna_validated = validated_data.get('dna_extraction')
     assay_validated = validated_data.get('assay')
-    if assay_validated:
+    if assay_validated and rna_validated != dna_validated:
       validated_data["assay"] = Assay.objects.get(
           code=assay_validated.get('code'),
           name=assay_validated.get('name'),
+      )
+    else:
+      raise serializers.ValidationError(
+          "Batch with this extraction group already exists."
       )
     project = Batch.objects.create(**validated_data)
     return project

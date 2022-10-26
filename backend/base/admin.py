@@ -8,3 +8,4 @@ admin.site.register(Assay)
 admin.site.register(Reagent)
 admin.site.register(Supply)
 admin.site.register(Label)
+
