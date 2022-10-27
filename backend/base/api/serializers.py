@@ -96,8 +96,8 @@ class AssaySerializer(ModelSerializer):
       )
     return value
 
-
-  #ensures that assay can either have zero or more than one assay in group
+  # ensures that when making an assay only either zero or more than one assay can be in the group
+  # override create method?
   # def clean(self):
   #   group = self.cleaned_data.get('group')
   #   if group and group.count() == 1:
@@ -118,7 +118,7 @@ class BatchSerializer(ModelSerializer):
     }
 
   def validate_dna_extraction(self, value):
-    check_query = Batch.objects.all().filter(rna_extraction=value)
+    check_query = Batch.objects.filter(rna_extraction=value)
     if check_query.exists():
       raise serializers.ValidationError(
           "Batch with this extraction group already exists."
@@ -126,7 +126,7 @@ class BatchSerializer(ModelSerializer):
     return value
 
   def validate_rna_extraction(self, value):
-    check_query = Batch.objects.all().filter(dna_extraction=value)
+    check_query = Batch.objects.filter(dna_extraction=value)
     if check_query.exists():
       raise serializers.ValidationError(
           "Batch with this extraction group already exists."
