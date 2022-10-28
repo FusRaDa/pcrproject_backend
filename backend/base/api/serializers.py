@@ -118,19 +118,21 @@ class BatchSerializer(ModelSerializer):
     }
 
   def validate_dna_extraction(self, value):
-    check_query = Batch.objects.filter(rna_extraction=value)
-    if check_query.exists():
-      raise serializers.ValidationError(
-          "Batch with this extraction group already exists."
+    if value is not None:
+      check_query = Batch.objects.filter(rna_extraction=value)
+      if check_query.exists():
+        raise serializers.ValidationError(
+            "Batch with this extraction group already exists. dna"
       )
     return value
 
   def validate_rna_extraction(self, value):
-    check_query = Batch.objects.filter(dna_extraction=value)
-    if check_query.exists():
-      raise serializers.ValidationError(
-          "Batch with this extraction group already exists."
-      )
+    if value is not None:
+      check_query = Batch.objects.filter(dna_extraction=value)
+      if check_query.exists():
+        raise serializers.ValidationError(
+            "Batch with this extraction group already exists."
+        )
     return value
 
 
