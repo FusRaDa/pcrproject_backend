@@ -16,9 +16,9 @@ class SupplySerializer(ModelSerializer):
     fields = ['name', 'catalogNumber', 'quantity', 'units', 'pk']
 
 
-class GroupAssay(ModelSerializer):
-  reagent = ReagentSerializer(many=True)
-  supply = SupplySerializer(many=True)
+class GroupAssaySerializer(ModelSerializer):
+  reagent = ReagentSerializer(many=True, allow_null=True)
+  supply = SupplySerializer(many=True, allow_null=True) 
 
   class Meta:
     model = Assay
@@ -34,12 +34,8 @@ class GroupAssay(ModelSerializer):
       raise serializers.ValidationError(
           "Assay with this code was not found."
       )
-    if check_query.exists() and (isinstance(self.parent, BatchSerializer)):
+    if check_query.exists() and (isinstance(self.parent, AssaySerializer)):
       return value
-    # elif check_query.exists() and (isinstance(self.parent, AssaySerializer)):
-    #   raise serializers.ValidationError(
-    #         "Assay with this code already exists."
-    #     )
 
   def validate_name(self, value):
     check_query = Assay.objects.filter(name=value)
@@ -47,20 +43,20 @@ class GroupAssay(ModelSerializer):
       raise serializers.ValidationError(
           "Assay with this name was not found."
       )
-    if check_query.exists() and (isinstance(self.parent, BatchSerializer)):
+    if check_query.exists() and (isinstance(self.parent, AssaySerializer)):
       return value
 
 
 class AssaySerializer(ModelSerializer):
-  group = GroupAssay(many=True)
+  assays = GroupAssaySerializer(many=True)
 
   #frontend - only allow a reagent to be added if there is no group of assays
-  reagent = ReagentSerializer(many=True)
-  supply = SupplySerializer(many=True)
+  reagent = ReagentSerializer(many=True, allow_null=True)
+  supply = SupplySerializer(many=True, allow_null=True)
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'type', 'reagent', 'supply', 'group', 'pk'] # include group, reagent, and supply as required later on
+    fields = ['name', 'code', 'type', 'reagent', 'supply', 'assays', 'pk'] # include group, reagent, and supply as required later on
     extra_kwargs = {
       'name' : {'validators': []},
       'code' : {'validators': []},
@@ -75,7 +71,7 @@ class AssaySerializer(ModelSerializer):
       raise serializers.ValidationError(
           "Assay with this code already exists."
       )
-    if not check_query.exists():
+    if not check_query.exists() and not isinstance(self, AssaySerializer):
       raise serializers.ValidationError(
           "Assay with this code was not found."
       )
@@ -83,6 +79,9 @@ class AssaySerializer(ModelSerializer):
 
   def validate_name(self, value):
     check_query = Assay.objects.filter(name=value)
+    # throws error if query does not exist 
+    # and request is not from BatchSerializer 
+    # and requesting field name is not "assay"
     if check_query.exists() and not (
         isinstance(self.parent, BatchSerializer)
         and self.field_name == "assay"
@@ -90,23 +89,113 @@ class AssaySerializer(ModelSerializer):
       raise serializers.ValidationError(
           "Assay with this name already exists."
       )
-    if not check_query.exists():
+    # throws error if query does not exist 
+    # and request is not from AssaySerializer 
+    if not check_query.exists() and not isinstance(self, AssaySerializer):
       raise serializers.ValidationError(
           "Assay with this name was not found."
       )
     return value
 
-  # ensures that when making an assay only either zero or more than one assay can be in the group
-  # override create method?
-  # def clean(self):
-  #   group = self.cleaned_data.get('group')
-  #   if group and group.count() == 1:
-  #     raise serializers.ValidationError('Assay must either have no assays or more than one in its group')
-  #   return self.cleaned_data
+
+  def create(self, validated_data):
+    reagent_data = validated_data.pop('reagent')
+    supply_data = validated_data.pop('supply')
+    assays_data = validated_data.pop('assays')
+
+    if len(assays_data) == 1:
+      raise serializers.ValidationError(
+          "Grouped assay cannot contain only one assay"
+      )
+    
+    if (len(assays_data) == 0) and ((len(reagent_data) == 0) or (len(supply_data) == 0)):
+      raise serializers.ValidationError(
+          "Individual assays must have reagents and supplies"
+      )
+    
+    if (len(assays_data) > 1) and ((len(reagent_data) > 0) or (len(supply_data) > 0)):
+      raise serializers.ValidationError(
+          "Grouped assays cannot contain reagents and supplies"
+      )
+
+    all_data = Assay.objects.create(**validated_data)
+
+    #make reagent neccessary in frontend for individual assays
+    if reagent_data is not None:
+      for reagent in reagent_data:
+        d=dict(reagent)
+        Reagent.objects.create(name=all_data, reagent=d['reagent'])
+
+    #make supply neccessary in frontend for individual assays
+    if supply_data is not None:
+      for supply in supply_data:
+        d=dict(supply)
+        Supply.objects.create(name=all_data, supply=d['supply'])
+
+    #make assays neccessary in frontend for group assays
+    if assays_data is not None:
+      for assay in assays_data:
+        d=dict(assay)
+        Assay.objects.create(name=all_data, assay=d['assays'])
+
+    return all_data
+
+
+  def update(self, instance, validated_data):
+    reagent_data = validated_data.pop('reagent')
+    supply_data = validated_data.pop('supply')
+    assays_data = validated_data.pop('assays')
+
+    if len(assays_data) == 1:
+      raise serializers.ValidationError(
+          "Grouped assay cannot contain only one assay"
+      )
+    
+    if (len(assays_data) == 0) and ((len(reagent_data) == 0) or (len(supply_data) == 0)):
+      raise serializers.ValidationError(
+          "Individual assays must have reagents and supplies"
+      )
+    
+    if (len(assays_data) > 1) and ((len(reagent_data) > 0) or (len(supply_data) > 0)):
+      raise serializers.ValidationError(
+          "Grouped assays cannot contain reagents and supplies"
+      )
+
+    for item in validated_data:
+      if Assay._meta.get_field(item):
+        setattr(instance, item, validated_data[item])
+    Reagent.objects.filter(name=instance).delete()
+    for reagent in reagent_data:
+      d=dict(reagent)
+      Reagent.objects.create(name=instance, reagent=d['reagent'])
+
+    for item in validated_data:
+      if Assay._meta.get_field(item):
+        setattr(instance, item, validated_data[item])
+    Supply.objects.filter(name=instance).delete()
+    for supply in supply_data:
+      d=dict(supply)
+      Supply.objects.create(name=instance, supply=d['supply'])
+
+    for item in validated_data:
+      if Assay._meta.get_field(item):
+        setattr(instance, item, validated_data[item])
+    Assay.objects.filter(name=instance).delete()
+    for assay in assays_data:
+      d=dict(assay)
+      Assay.objects.create(name=instance, assay=d['assays'])
+
+    instance.save()
+    return instance
+
 
 
 
 class BatchSerializer(ModelSerializer):
+  # two errors concerning extraction groups:
+  # 1-an extraction group is unique for either dna or rna/total-nucleic
+  # 2-updating an extraction group from dna to rna (vice verse) is not allowed, MUST delete and create a new batch
+  # OR disable updating assay in batch
   assay = AssaySerializer(required=True)
   
   class Meta:
@@ -122,7 +211,7 @@ class BatchSerializer(ModelSerializer):
       check_query = Batch.objects.filter(rna_extraction=value)
       if check_query.exists():
         raise serializers.ValidationError(
-            "Batch with this extraction group already exists. dna"
+            "Batch with this extraction group already exists."
       )
     return value
 
@@ -148,10 +237,10 @@ class BatchSerializer(ModelSerializer):
       )
     else:
       raise serializers.ValidationError(
-          "Batch with this extraction group already exists."
+          "Batch cannot share the same extraction groups"
       )
-    project = Batch.objects.create(**validated_data)
-    return project
+    instance = Batch.objects.create(**validated_data)
+    return instance
 
 
   #reagent issue - custome update
@@ -162,6 +251,9 @@ class BatchSerializer(ModelSerializer):
         name=assay_validated.get('name'),
         code=assay_validated.get('code'),
       )
+
+    instance.dna_extraction = validated_data.get('dna_extraction', instance.dna_extraction)
+    instance.rna_extraction = validated_data.get('rna_extraction', instance.rna_extraction)
 
     instance.numberOfSamples = validated_data.get('numberOfSamples', instance.numberOfSamples)
     instance.isBatchProcessed = validated_data.get('isBatchProcessed', instance.isBatchProcessed)
