@@ -11,6 +11,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from base.models import Batch, Assay, Reagent, Supply, Label
 from .serializers import AssaySerializer, BatchSerializer, LabelSerializer, ReagentSerializer, SupplySerializer
 
+from .pagination import BatchPagination
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
   @classmethod
@@ -151,6 +153,7 @@ assay_destroy_view = AssayDestroyAPIView.as_view()
 class BatchListAPIView(generics.ListAPIView):
   queryset = Batch.objects.all()
   serializer_class = BatchSerializer
+  pagination_class = BatchPagination
 
 batch_list_view = BatchListAPIView.as_view()
 
