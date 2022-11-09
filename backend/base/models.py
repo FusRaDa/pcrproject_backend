@@ -57,21 +57,22 @@ class Supply(models.Model):
 def get_default_reagents():
   return {'reagents': []}
 
-
 DNA = 'DNA'
 RNA = 'RNA'
 TOTAL_NUCLEIC = 'Total nucleic'
+NONE = 'NONE'
 
 TYPE = [
   (DNA, 'DNA'),
   (RNA, 'RNA'),
   (TOTAL_NUCLEIC, 'Total nucleic'),
+  (NONE, 'NONE'),
 ]
 
 class Assay(models.Model):
   name = models.CharField(max_length=25, null=True, unique=True)
   code = models.CharField(max_length=25, null=True, unique=True)
-  type = models.CharField(max_length=15, choices=TYPE, default=DNA)
+  type = models.CharField(max_length=15, choices=TYPE, default=NONE)
 
   assays = models.ManyToManyField('self', blank=True, default='null', symmetrical=False, related_name="assays+")
   #if assay contains a group do not include in group list - fix in frontend
