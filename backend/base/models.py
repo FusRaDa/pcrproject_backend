@@ -74,12 +74,12 @@ class Assay(models.Model):
   code = models.CharField(max_length=25, null=True, unique=True)
   type = models.CharField(max_length=15, choices=TYPE, default=NONE)
 
-  assays = models.ManyToManyField('self', blank=True, default='null', symmetrical=False, related_name="assays+")
+  assay = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="grouped_assays")
   #if assay contains a group do not include in group list - fix in frontend
 
   #make reagent and supply neccessary eventually...
-  reagent = models.ManyToManyField(Reagent, blank=True, symmetrical=False, related_name="reagent+")
-  supply = models.ManyToManyField(Supply, blank=True, symmetrical=False, related_name="supply+")
+  reagent = models.ManyToManyField(Reagent, blank=True, symmetrical=False)
+  supply = models.ManyToManyField(Supply, blank=True, symmetrical=False)
 
   def __str__(self):
     return f'{self.code}-{self.name}'

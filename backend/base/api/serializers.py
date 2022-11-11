@@ -16,8 +16,8 @@ class SupplySerializer(ModelSerializer):
 
 
 class GroupAssaySerializer(ModelSerializer):
-  reagent = ReagentSerializer(many=True, allow_null=True, required=False)
-  supply = SupplySerializer(many=True, allow_null=True, required=False) 
+  reagent = ReagentSerializer(many=True, read_only=True)
+  supply = SupplySerializer(many=True, read_only=True) 
 
   class Meta:
     model = Assay
@@ -47,15 +47,18 @@ class GroupAssaySerializer(ModelSerializer):
 
 
 class AssaySerializer(ModelSerializer):
-  assays = GroupAssaySerializer(many=True, allow_null=True, required=False)
+  assay = GroupAssaySerializer(many=True, read_only=True)
+  reagent = ReagentSerializer(many=True, read_only=True)
+  supply = SupplySerializer(many=True, read_only=True)
 
   #frontend - only allow a reagent to be added if there is no group of assays
-  reagent = ReagentSerializer(many=True, allow_null=True, required=False)
-  supply = SupplySerializer(many=True, allow_null=True, required=False)
+  reagent_ids = serializers.PrimaryKeyRelatedField(queryset=Reagent.objects.all(), many=True, required=False, write_only=True)
+  supply_ids = serializers.PrimaryKeyRelatedField(queryset=Supply.objects.all(), many=True, required=False, write_only=True)
+  assay_ids = serializers.PrimaryKeyRelatedField(queryset=Assay.objects.all(), many=True, required=False, write_only=True)
 
   class Meta:
     model = Assay
-    fields = ['name', 'code', 'type', 'reagent', 'supply', 'assays', 'pk'] # include group, reagent, and supply as required later on
+    fields = ['name', 'code', 'type', 'reagent', 'supply', 'assay', 'pk', 'reagent_ids', 'supply_ids', 'assay_ids'] # include group, reagent, and supply as required later on
     extra_kwargs = {
       'name' : {'validators': []},
       'code' : {'validators': []},
@@ -63,132 +66,94 @@ class AssaySerializer(ModelSerializer):
 
   def validate_code(self, value):
     check_query = Assay.objects.filter(code=value)
-    if check_query.exists() and not (
+    if self.context['request']._request.method == 'POST':
+      if check_query.exists() and not (
         isinstance(self.parent, BatchSerializer)
-        and self.field_name == "assay"
-    ):
-      raise serializers.ValidationError(
-          "Assay with this code already exists."
-      )
-    if not check_query.exists() and not isinstance(self, AssaySerializer):
-      raise serializers.ValidationError(
-          "Assay with this code was not found."
-      )
+        and self.field_name == "assay"):
+        raise serializers.ValidationError("Assay with this code already exists.")
+
+      if not check_query.exists() and not isinstance(self, AssaySerializer):
+        raise serializers.ValidationError("Assay with this code was not found.")
+
+    if self.context['request']._request.method == 'PUT':
+      if check_query.exists() and (isinstance(self.parent, AssaySerializer)
+        ):
+          raise serializers.ValidationError("Assay with this code already exists")
     return value
 
   def validate_name(self, value):
     check_query = Assay.objects.filter(name=value)
-    # throws error if query does not exist 
-    # and request is not from BatchSerializer 
-    # and requesting field name is not "assay"
-    if check_query.exists() and not (
+    if self.context['request']._request.method == 'POST':
+      if check_query.exists() and not (
         isinstance(self.parent, BatchSerializer)
-        and self.field_name == "assay"
-    ):
-      raise serializers.ValidationError(
-          "Assay with this name already exists."
-      )
-    # throws error if query does not exist 
-    # and request is not from AssaySerializer 
-    if not check_query.exists() and not isinstance(self, AssaySerializer):
-      raise serializers.ValidationError(
-          "Assay with this name was not found."
-      )
+        and self.field_name == "assay"):
+        raise serializers.ValidationError("Assay with this name already exists.")
+
+      if not check_query.exists() and not isinstance(self, AssaySerializer):
+        raise serializers.ValidationError("Assay with this name was not found.")
+
+    if self.context['request']._request.method == 'PUT':
+      if check_query.exists() and (isinstance(self.parent, AssaySerializer)):
+          raise serializers.ValidationError("Assay with this name already exists")
     return value
 
-
   def create(self, validated_data):
-    reagent_data = validated_data.pop('reagent')
-    supply_data = validated_data.pop('supply')
-    assays_data = validated_data.pop('assays')
+    reagent_ids = validated_data.pop('reagent_ids', [])
+    supply_ids = validated_data.pop('supply_ids', [])
+    assay_ids = validated_data.pop('assay_ids', [])
 
-    # if not assays_data and len(assays_data) == 1:
-    #   raise serializers.ValidationError(
-    #       "Grouped assay cannot contain only one assay"
-    #   )
+    if len(assay_ids) == 1:
+      raise serializers.ValidationError(
+        "Grouped assays cannot contain only one assay"
+      )
     
-    # if not assays_data and (not reagent_data or not supply_data):
-    #   raise serializers.ValidationError(
-    #       "Individual assays must have reagents and supplies"
-    #   )
+    if len(assay_ids) == 0 and (len(reagent_ids) == 0 or len(supply_ids) == 0):
+      raise serializers.ValidationError(
+        "Individual assays must have reagents and supplies"
+      )
     
-    # if assays_data and (reagent_data or supply_data):
-    #   raise serializers.ValidationError(
-    #       "Grouped assays cannot contain reagents and supplies"
-    #   )
+    if len(assay_ids) > 0 and (len(reagent_ids) > 0 or len(supply_ids) > 0):
+      raise serializers.ValidationError(
+        "Grouped assay cannot contain reagents and supplies"
+      )
 
-    all_data = Assay.objects.create(**validated_data)
-    #make reagent neccessary in frontend for individual assays
-    if reagent_data:
-      for reagent in reagent_data:
-        d=dict(reagent)
-        Reagent.objects.create(name=all_data, reagent=d['reagent'])
-    #make supply neccessary in frontend for individual assays
-    if supply_data:
-      for supply in supply_data:
-        d=dict(supply)
-        Supply.objects.create(name=all_data, supply=d['supply'])
-    #make assays neccessary in frontend for group assays
-    if assays_data:
-      for assay in assays_data:
-        d=dict(assay)
-        Assay.objects.create(name=all_data, assay=d['assays'])
-    return all_data
+    instance = Assay.objects.create(**validated_data)
+    
+    for reagent in reagent_ids:
+      instance.reagent.add(reagent)
+
+    for supply in supply_ids:
+      instance.supply.add(supply)
+
+    for assay in assay_ids:
+      instance.assay.add(assay)
+
+    return instance
 
 
   def update(self, instance, validated_data):
-    reagent_data = validated_data.get('reagent')
-    supply_data = validated_data.get('supply')
-    assays_data = validated_data.get('assays')
-
-    # if not assays_data and len(assays_data) == 1:
-    #   raise serializers.ValidationError(
-    #       "Grouped assay cannot contain only one assay"
-    #   )
-    
-    # if not assays_data and (not reagent_data or not supply_data):
-    #   raise serializers.ValidationError(
-    #       "Individual assays must have reagents and supplies"
-    #   )
-    
-    # if assays_data and (reagent_data or supply_data):
-    #   raise serializers.ValidationError(
-    #       "Grouped assays cannot contain reagents and supplies"
-    #   )
+    reagent_ids = validated_data.pop('reagent_ids', [])
+    supply_ids = validated_data.pop('supply_ids', [])
+    assay_ids = validated_data.pop('assay_ids', [])
 
     instance.name = validated_data.get('name', instance.name)
     instance.code = validated_data.get('code', instance.code)
     instance.type = validated_data.get('type', instance.type)
 
-    if reagent_data:
-      for item in validated_data:
-        if Assay._meta.get_field(item):
-          setattr(instance, item, validated_data[item])
-      Reagent.objects.filter(name=instance).delete()
-      for reagent in reagent_data:
-        d=dict(reagent)
-        Reagent.objects.create(name=instance, reagent=d['reagent'])
+    for reagent in reagent_ids:
+      instance.reagent.set(reagent)
 
-    if supply_data:
-      for item in validated_data:
-        if Assay._meta.get_field(item):
-          setattr(instance, item, validated_data[item])
-      Supply.objects.filter(name=instance).delete()
-      for supply in supply_data:
-        d=dict(supply)
-        Supply.objects.create(name=instance, supply=d['supply'])
+    for supply in supply_ids:
+      instance.supply.set(supply)
 
-    if assays_data:
-      for item in validated_data:
-        if Assay._meta.get_field(item):
-          setattr(instance, item, validated_data[item])
-      Assay.objects.filter(name=instance).delete()
-      for assay in assays_data:
-        d=dict(assay)
-        Assay.objects.create(name=instance, assay=d['assays'])
+    for assay in assay_ids:
+      instance.assay.set(assay)
 
-    instance.save()
+    instance.save
+
     return instance
+
+ 
 
 
 
