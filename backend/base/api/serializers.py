@@ -107,10 +107,10 @@ class AssaySerializer(ModelSerializer):
         "Grouped assays cannot contain only one assay"
       )
     
-    if len(assay_ids) == 0 and (len(reagent_ids) == 0 or len(supply_ids) == 0):
-      raise serializers.ValidationError(
-        "Individual assays must have reagents and supplies"
-      )
+    # if len(assay_ids) == 0 and (len(reagent_ids) == 0 or len(supply_ids) == 0):
+    #   raise serializers.ValidationError(
+    #     "Individual assays must have reagents and supplies"
+    #   )
     
     if len(assay_ids) > 0 and (len(reagent_ids) > 0 or len(supply_ids) > 0):
       raise serializers.ValidationError(
@@ -136,21 +136,44 @@ class AssaySerializer(ModelSerializer):
     supply_ids = validated_data.pop('supply_ids', [])
     assay_ids = validated_data.pop('assay_ids', [])
 
+    if len(assay_ids) == 1:
+      raise serializers.ValidationError(
+        "Grouped assays cannot contain only one assay"
+      )
+    
+    # if len(assay_ids) == 0 and (len(reagent_ids) == 0 or len(supply_ids) == 0):
+    #   raise serializers.ValidationError(
+    #     "Individual assays must have reagents and supplies"
+    #   )
+    
+    if len(assay_ids) > 0 and (len(reagent_ids) > 0 or len(supply_ids) > 0):
+      raise serializers.ValidationError(
+        "Grouped assay cannot contain reagents and supplies"
+      )
+
     instance.name = validated_data.get('name', instance.name)
     instance.code = validated_data.get('code', instance.code)
     instance.type = validated_data.get('type', instance.type)
 
-    for reagent in reagent_ids:
-      instance.reagent.set(reagent)
-
-    for supply in supply_ids:
-      instance.supply.set(supply)
-
-    for assay in assay_ids:
-      instance.assay.set(assay)
-
     instance.save
 
+    assays = Assay.objects.get(pk=instance.pk)
+
+    if len(reagent_ids) > 0:
+      assays.reagent.clear()
+      for reagent in reagent_ids:
+        assays.reagent.add(reagent)
+
+    if len(supply_ids) > 0:
+      assays.supply.clear()
+      for supply in supply_ids:
+        assays.supply.add(supply)
+
+    if len(assay_ids) > 0:
+      assays.assay.clear()
+      for assay in assay_ids:
+        assays.assay.add(assay)
+  
     return instance
 
  
