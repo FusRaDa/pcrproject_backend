@@ -151,7 +151,7 @@ assay_destroy_view = AssayDestroyAPIView.as_view()
 
 #Batch
 class BatchListAPIView(generics.ListAPIView):
-  queryset = Batch.objects.all()
+  queryset = Batch.objects.get_queryset().order_by('id')
   serializer_class = BatchSerializer
   pagination_class = BatchPagination
 

@@ -176,10 +176,6 @@ class AssaySerializer(ModelSerializer):
   
     return instance
 
- 
-
-
-
 
 class BatchSerializer(ModelSerializer):
   # two errors concerning extraction groups:
@@ -187,6 +183,7 @@ class BatchSerializer(ModelSerializer):
   # 2-updating an extraction group from dna to rna (vice verse) is not allowed, MUST delete and create a new batch
   # OR disable updating assay in batch
   assay = AssaySerializer(required=True)
+  batchDate = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
   
   class Meta:
     model = Batch
