@@ -1,8 +1,11 @@
-# pcrproject_backend
+# pcrproject_backend by Matthew Rada
 
 REST API - Django Rest Framework
 
 Features
+-Creating models
+-Using django admin interface
+-JWT token authentication
 -Basic CRUD operations
 -Serializers and validators
 -views and urls/endpoints
