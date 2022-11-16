@@ -183,7 +183,7 @@ class BatchSerializer(ModelSerializer):
   # 2-updating an extraction group from dna to rna (vice verse) is not allowed, MUST delete and create a new batch
   # OR disable updating assay in batch
   assay = AssaySerializer(required=True)
-  batchDate = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+  batchDate = serializers.DateTimeField(required=False, format="%Y-%m-%d %H:%M")
   
   class Meta:
     model = Batch
@@ -244,7 +244,7 @@ class BatchSerializer(ModelSerializer):
 
     instance.numberOfSamples = validated_data.get('numberOfSamples', instance.numberOfSamples)
     instance.isBatchProcessed = validated_data.get('isBatchProcessed', instance.isBatchProcessed)
-    instance.batchDate = validated_data.get('batchDate', instance.batchDate)
+   
     instance.fieldLabels = validated_data.get('fieldLabels', instance.fieldLabels)
     instance.save()
 

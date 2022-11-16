@@ -99,7 +99,7 @@ class Batch(models.Model):
 
   isBatchProcessed = models.BooleanField(default=False)
 
-  batchDate = models.DateTimeField(default=datetime.now())
+  batchDate = models.DateTimeField(blank=True, default=datetime.now())
   # # dueDate = batchDate + 48hours
 
   fieldLabels = models.JSONField(blank=True, null=True, default=dict)
