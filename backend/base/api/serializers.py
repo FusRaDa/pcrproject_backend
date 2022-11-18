@@ -235,7 +235,7 @@ class BatchSerializer(ModelSerializer):
       )
     else:
       raise serializers.ValidationError(
-          "Batch cannot share the same extraction groups"
+          "Batch cannot share the same extraction groups."
       )
     instance = Batch.objects.create(**validated_data)
     return instance
