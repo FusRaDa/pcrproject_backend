@@ -72,12 +72,12 @@ class AssaySerializer(ModelSerializer):
         and self.field_name == "assay"):
         raise serializers.ValidationError("Assay with this code already exists.")
 
-      if not check_query.exists() and not isinstance(self, AssaySerializer):
+      if not check_query.exists():
         raise serializers.ValidationError("Assay with this code was not found.")
 
+    # does not work
     if self.context['request']._request.method == 'PUT':
-      if check_query.exists() and (isinstance(self.parent, AssaySerializer)
-        ):
+      if self.instance.code != value and check_query.exists():
           raise serializers.ValidationError("Assay with this code already exists")
     return value
 
@@ -89,12 +89,12 @@ class AssaySerializer(ModelSerializer):
         and self.field_name == "assay"):
         raise serializers.ValidationError("Assay with this name already exists.")
 
-      if not check_query.exists() and not isinstance(self, AssaySerializer):
+      if not check_query.exists():
         raise serializers.ValidationError("Assay with this name was not found.")
 
     if self.context['request']._request.method == 'PUT':
-      if check_query.exists() and (isinstance(self.parent, AssaySerializer)):
-          raise serializers.ValidationError("Assay with this name already exists")
+      if self.instance.name != value and check_query.exists():
+        raise serializers.ValidationError("Assay with this name already exists")
     return value
 
   def create(self, validated_data):
@@ -145,6 +145,7 @@ class AssaySerializer(ModelSerializer):
     #   raise serializers.ValidationError(
     #     "Individual assays must have reagents and supplies"
     #   )
+
     
     if len(assay_ids) > 0 and (len(reagent_ids) > 0 or len(supply_ids) > 0):
       raise serializers.ValidationError(
@@ -155,7 +156,7 @@ class AssaySerializer(ModelSerializer):
     instance.code = validated_data.get('code', instance.code)
     instance.type = validated_data.get('type', instance.type)
 
-    instance.save
+    instance.save()
 
     assays = Assay.objects.get(pk=instance.pk)
 
@@ -193,6 +194,7 @@ class BatchSerializer(ModelSerializer):
       'rna_extraction' : {'validators': []},
     }
 
+
   def validate_dna_extraction(self, value):
     #TODO: add letter and length validation later 
     if value is not None:
@@ -207,6 +209,7 @@ class BatchSerializer(ModelSerializer):
           "Batch with this extraction group already exists."
       )
     return value
+
 
   def validate_rna_extraction(self, value):
     if value is not None:

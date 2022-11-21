@@ -92,7 +92,7 @@ def get_default_miscFields():
 class Batch(models.Model):
   assay = models.ForeignKey(Assay, null=True, on_delete=models.SET_NULL)
 
-  numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero])
+  numberOfSamples = models.PositiveSmallIntegerField(default=0, validators=[validate_nonzero], )
   # #number of tests in assay code
   # #calculate number of tests = tests in assay code * number of samples
 
