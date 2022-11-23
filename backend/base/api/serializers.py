@@ -72,11 +72,10 @@ class AssaySerializer(ModelSerializer):
         and self.field_name == "assay"):
         raise serializers.ValidationError("Assay with this code already exists.")
 
-      if not check_query.exists():
+      if not check_query.exists() and not (isinstance(self, AssaySerializer)):
         raise serializers.ValidationError("Assay with this code was not found.")
 
-    # does not work
-    if self.context['request']._request.method == 'PUT':
+    if self.context['request']._request.method == 'PUT' and not (isinstance(self.parent, BatchSerializer)):
       if self.instance.code != value and check_query.exists():
           raise serializers.ValidationError("Assay with this code already exists")
     return value
@@ -89,12 +88,12 @@ class AssaySerializer(ModelSerializer):
         and self.field_name == "assay"):
         raise serializers.ValidationError("Assay with this name already exists.")
 
-      if not check_query.exists():
+      if not check_query.exists() and not (isinstance(self, AssaySerializer)):
         raise serializers.ValidationError("Assay with this name was not found.")
 
-    if self.context['request']._request.method == 'PUT':
-      if self.instance.name != value and check_query.exists():
-        raise serializers.ValidationError("Assay with this name already exists")
+    if self.context['request']._request.method == 'PUT' and not (isinstance(self.parent, BatchSerializer)):
+        if self.instance.name != value and check_query.exists():
+          raise serializers.ValidationError("Assay with this name already exists")
     return value
 
   def create(self, validated_data):
@@ -269,5 +268,8 @@ class LabelSerializer(ModelSerializer):
   class Meta:
     model = Label
     fields = ['label', 'pk']
+    # extra_kwargs = {
+    #   'label' : {'validators': []},
+    # }
 
 
