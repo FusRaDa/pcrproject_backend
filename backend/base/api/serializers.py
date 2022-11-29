@@ -195,11 +195,13 @@ class BatchSerializer(ModelSerializer):
 
 
   def validate_dna_extraction(self, value):
-    if len(value) != 3 or value.isalpha() is False or value.isupper() is False:
-      raise serializers.ValidationError(
-        "Extraction group must be a three capitalized letter field."
-      )
     if value is not None:
+      
+      if len(value) != 3 or value.isalpha() is False or value.isupper() is False:
+        raise serializers.ValidationError(
+          "Extraction group must be a three capitalized letter field."
+        )
+    
       check_query_dna = Batch.objects.filter(dna_extraction=value)
       check_query_rna = Batch.objects.filter(rna_extraction=value)
       if check_query_rna.exists():
@@ -214,11 +216,13 @@ class BatchSerializer(ModelSerializer):
 
 
   def validate_rna_extraction(self, value):
-    if len(value) != 3 or value.isalpha() is False or value.isupper() is False:
-      raise serializers.ValidationError(
-        "Extraction group must be a three capitalized letter field."
-      )
     if value is not None:
+
+      if len(value) != 3 or value.isalpha() is False or value.isupper() is False:
+        raise serializers.ValidationError(
+          "Extraction group must be a three capitalized letter field."
+        )
+
       check_query_dna = Batch.objects.filter(dna_extraction=value)
       check_query_rna = Batch.objects.filter(rna_extraction=value)
       if check_query_dna.exists():
